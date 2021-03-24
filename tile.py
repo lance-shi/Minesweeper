@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import messagebox
 from image import *
+from collections import deque
 import random
 import platform
 import time
@@ -37,14 +38,14 @@ class Tiles:
 		self.mineNumber = mineNumber
 		self.labels = labels
 
-		self.flagCount = 0
-		self.correctFlagCount = 0
-		self.clickedCount = 0
-		self.startTime = None
-
 		self.setup()   
 
 	def setup(self):
+		self.flagCount = 0
+		self.clickedCount = 0
+		self.startTime = None
+		self.gameEnded = False
+
 		self.tiles = []
 		for x in range(0, self.sizeX):
 			for y in range(0, self.sizeY):
@@ -68,6 +69,12 @@ class Tiles:
 				for n in self.getNeighbors(x, y):
 					minesCount += 1 if n.isMine else 0
 				self.tiles[x][y].mines = minesCount
+
+		self.refreshLabels()
+
+	def refreshLabels(self):
+		self.labels["flags"].config(text = "Flags: " + str(self.flagCount))
+		self.labels["mines"].config(text = "Mines: " + str(self.mineNumber))
 
 	def getNeighbors(self, x, y):
 		neighbors = []
@@ -95,6 +102,10 @@ class Tiles:
 	def onClick(self, tile):
 		if self.startTime == None:
 			self.startTime = datetime.now()
+			self.updateTimer()
+
+		if tile.state != self.STATE_DEFAULT:
+			return
 
 		if tile.isMine == True:
 			self.gameOver(False)
@@ -106,17 +117,79 @@ class Tiles:
 		else:
 			tile.button.config(image=self.images.numbers[tile.mines - 1])
 		
-		if tile.state != self.STATE_CLICKED:
-			tile.state == self.STATE_CLICKED
-			self.clickedCount += 1
-		if self.clickedCount == (self.sizeX * self.sizeY) - self.mineNumber:
+		tile.state == self.STATE_CLICKED
+		self.clickedCount += 1
+		print(f"clickedCount is {self.clickedCount}")
+		target = (self.sizeX * self.sizeY) - self.mineNumber
+		print(f"target is {target}")
+		if self.clickedCount >= (self.sizeX * self.sizeY) - self.mineNumber:
 			self.gameOver(True)
 
 	def onRightClick(self, tile):
-		pass
+		if self.startTime == None:
+			self.startTime = datetime.now()
+			self.updateTimer()
+
+		if tile.state == self.STATE_DEFAULT:
+			tile.button.config(image = self.images.flag)
+			tile.state = self.STATE_FLAGGED
+			self.flagCount += 1
+		elif tile.state == self.STATE_FLAGGED:
+			tile.button.config(image = self.images.plain)
+			tile.state = self.STATE_DEFAULT
+			self.flagCount -= 1
+		self.refreshLabels()
 
 	def gameOver(self, won):
-		pass
+		self.gameEnded = True
+		for x in range(0, self.sizeX):
+			for y in range(0, self.sizeY):
+				currentTile = self.tiles[x][y]
+				if currentTile.isMine == False and currentTile.state == self.STATE_FLAGGED:
+					currentTile.button.config(image = self.images.wrong)
+				if currentTile.isMine == True and currentTile.state != self.STATE_FLAGGED:
+					currentTile.button.config(image = self.images.mine)
+
+		msg = "You Win! Play again?" if won else "You Lose! Play again?"
+		res = messagebox.askyesno("Game Over", msg)
+		if res:
+			self.setup()
+		else:
+			self.root.quit()
 
 	def clearSurroundingTiles(self, id):
-		pass
+		queue = deque([id])
+
+		while len(queue) != 0:
+			key = queue.popleft()
+			parts = key.split("_")
+			x = int(parts[0])
+			y = int(parts[1])
+
+			for tile in self.getNeighbors(x, y):
+				self.clearTile(tile, queue)
+
+	def clearTile(self, tile, queue):
+		if tile.state != self.STATE_DEFAULT:
+			return
+
+		if tile.mines == 0:
+			tile.button.config(image = self.images.clicked)
+			queue.append(tile.id)
+		else: 
+			tile.button.config(image = self.images.numbers[tile.mines-1])
+
+		tile.state = self.STATE_CLICKED
+		self.clickedCount += 1 
+	# either ways will work But I am wondering is this same logic as simply clicked? 
+
+	def updateTimer(self):
+		if self.startTime != None and self.gameEnded == False:
+			delta = datetime.now() - self.startTime
+			ts = str(delta).split('.')[0] # drop ms
+			if delta.total_seconds() < 36000:
+				ts = "0" + ts # zero-pad
+			self.labels["time"].config(text = ts)
+			self.frame.after(100, self.updateTimer)
+
+

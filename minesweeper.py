@@ -28,12 +28,9 @@ class Minesweeper:
 		self.labels["mines"].grid(row = self.SIZE_X+2, column = 0, columnspan = int(self.SIZE_Y/2)) # bottom left
 		self.labels["flags"].grid(row = self.SIZE_X+2, column = int(self.SIZE_Y/2)-1, columnspan = int(self.SIZE_Y/2)) # bottom right
 
-		self.restart()
+		self.setup()
 
 		self.root.mainloop()
-
-	def restart(self):
-		self.setup()
 
 	def setup(self):
 		self.tiles = Tiles(self.root, self.frame, self.images, self.labels, self.SIZE_X, self.SIZE_Y, self.MINE_NUMBER)

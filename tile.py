@@ -3,6 +3,8 @@ from tkinter import messagebox
 from image import *
 import random
 import platform
+import time
+from datetime import time, date, datetime
 
 class Tile:
 	def __init__(self, frame, images, x, y, defaultState):
@@ -19,7 +21,7 @@ class Tile:
 		self.mines = 0
 
 class Tiles:
-	def __init__(self, frame, images, sizeX, sizeY, mineNumber):
+	def __init__(self, root, frame, images, labels, sizeX, sizeY, mineNumber):
 		self.STATE_DEFAULT = 0
 		self.STATE_CLICKED = 1
 		self.STATE_FLAGGED = 2
@@ -27,11 +29,18 @@ class Tiles:
 		self.BTN_CLICK = "<Button-1>"
 		self.BTN_FLAG = "<Button-2>" if platform.system() == 'Darwin' else "<Button-3>"
 
+		self.root = root
 		self.frame = frame
 		self.images = images
 		self.sizeX = sizeX
 		self.sizeY = sizeY
 		self.mineNumber = mineNumber
+		self.labels = labels
+
+		self.flagCount = 0
+		self.correctFlagCount = 0
+		self.clickedCount = 0
+		self.startTime = None
 
 		self.setup()   
 
@@ -53,6 +62,13 @@ class Tiles:
 			y = mine % self.sizeX
 			self.tiles[x][y].isMine = True
 
+		for x in range(0, self.sizeX):
+			for y in range(0, self.sizeY):
+				minesCount = 0
+				for n in self.getNeighbors(x, y):
+					minesCount += 1 if n.isMine else 0
+				self.tiles[x][y].mines = minesCount
+
 	def getNeighbors(self, x, y):
 		neighbors = []
 		coords = [
@@ -66,10 +82,8 @@ class Tiles:
 			{"x": x+1,  "y": y+1},  #bottom left
 		]
 		for n in coords:
-			try:
+			if n["x"] >= 0 and n["x"] < self.sizeX and n["y"] >= 0 and n["y"] < self.sizeY:
 				neighbors.append(self.tiles[n["x"]][n["y"]])
-			except KeyError:
-				pass
 		return neighbors
 
 	def onClickWrapper(self, x, y):
@@ -79,7 +93,30 @@ class Tiles:
 		return lambda Button: self.onRightClick(self.tiles[x][y])
 
 	def onClick(self, tile):
-		pass
+		if self.startTime == None:
+			self.startTime = datetime.now()
+
+		if tile.isMine == True:
+			self.gameOver(False)
+			return
+
+		if tile.mines == 0:
+			tile.button.config(image = self.images.clicked)
+			self.clearSurroundingTiles(tile.id)
+		else:
+			tile.button.config(image=self.images.numbers[tile.mines - 1])
+		
+		if tile.state != self.STATE_CLICKED:
+			tile.state == self.STATE_CLICKED
+			self.clickedCount += 1
+		if self.clickedCount == (self.sizeX * self.sizeY) - self.mineNumber:
+			self.gameOver(True)
 
 	def onRightClick(self, tile):
+		pass
+
+	def gameOver(self, won):
+		pass
+
+	def clearSurroundingTiles(self, id):
 		pass

@@ -36,7 +36,7 @@ class Minesweeper:
 		self.setup()
 
 	def setup(self):
-		self.tiles = Tiles(self.frame, self.images, self.SIZE_X, self.SIZE_Y, self.MINE_NUMBER)
+		self.tiles = Tiles(self.root, self.frame, self.images, self.labels, self.SIZE_X, self.SIZE_Y, self.MINE_NUMBER)
 
 
 def main():

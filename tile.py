@@ -117,11 +117,9 @@ class Tiles:
 		else:
 			tile.button.config(image=self.images.numbers[tile.mines - 1])
 		
-		tile.state == self.STATE_CLICKED
-		self.clickedCount += 1
-		print(f"clickedCount is {self.clickedCount}")
-		target = (self.sizeX * self.sizeY) - self.mineNumber
-		print(f"target is {target}")
+		if tile.state != self.STATE_CLICKED:
+			tile.state == self.STATE_CLICKED
+			self.clickedCount += 1
 		if self.clickedCount >= (self.sizeX * self.sizeY) - self.mineNumber:
 			self.gameOver(True)
 

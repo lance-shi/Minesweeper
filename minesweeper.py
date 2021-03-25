@@ -21,7 +21,7 @@ class Minesweeper:
 			"flags": Label(self.frame, text = "Flags: 0")
 		}
 		restartImage = self.images.sunny
-		self.restartBtn = Button(self.frame, image=restartImage, height=20, width=20)
+		self.restartBtn = Button(self.frame, image=restartImage, height=20, width=20, command=self.restartGame)
 		self.restartBtn.grid(row = 0, column = 4)
 
 		self.labels["time"].grid(row = 1, column = 0, columnspan = self.SIZE_Y) # top full width
@@ -35,6 +35,8 @@ class Minesweeper:
 	def setup(self):
 		self.tiles = Tiles(self.root, self.frame, self.images, self.labels, self.SIZE_X, self.SIZE_Y, self.MINE_NUMBER)
 
+	def restartGame(self):
+		self.tiles.setup()
 
 def main():
 	mainApp = Minesweeper()

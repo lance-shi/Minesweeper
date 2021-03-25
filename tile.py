@@ -42,9 +42,9 @@ class Tiles:
 
 	def setup(self):
 		self.flagCount = 0
-		self.clickedCount = 0
 		self.startTime = None
 		self.gameEnded = False
+		self.defaultCount = self.sizeX * self.sizeY - self.mineNumber
 
 		self.tiles = []
 		for x in range(0, self.sizeX):
@@ -117,10 +117,12 @@ class Tiles:
 		else:
 			tile.button.config(image=self.images.numbers[tile.mines - 1])
 		
+
 		if tile.state != self.STATE_CLICKED:
-			tile.state == self.STATE_CLICKED
-			self.clickedCount += 1
-		if self.clickedCount >= (self.sizeX * self.sizeY) - self.mineNumber:
+			tile.state = self.STATE_CLICKED
+			self.defaultCount -= 1
+
+		if self.defaultCount <= 0:
 			self.gameOver(True)
 
 	def onRightClick(self, tile):
@@ -178,7 +180,7 @@ class Tiles:
 			tile.button.config(image = self.images.numbers[tile.mines-1])
 
 		tile.state = self.STATE_CLICKED
-		self.clickedCount += 1 
+		self.defaultCount -= 1
 	# either ways will work But I am wondering is this same logic as simply clicked? 
 
 	def updateTimer(self):
